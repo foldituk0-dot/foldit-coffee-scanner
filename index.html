@@ -4,23 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Foldit Coffee Club — Staff</title>
+  <title>Foldit Coffee Club — Staff Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
       padding: 24px;
+      min-height: 100vh;
       background: #f5f1e9;
       color: #30251f;
       font-family: Arial, sans-serif;
     }
     main {
-      width: 100%;
-      max-width: 420px;
-      padding: 32px;
+      max-width: 480px;
+      margin: 20px auto;
+      padding: 26px;
       background: white;
       border-radius: 18px;
       box-shadow: 0 8px 30px #30251f12;
@@ -40,7 +39,7 @@
     button {
       width: 100%;
       padding: 14px;
-      margin-top: 22px;
+      margin-top: 16px;
       border: 0;
       border-radius: 8px;
       background: #30251f;
@@ -48,7 +47,18 @@
       font-size: 16px;
       cursor: pointer;
     }
-    #message { overflow-wrap: anywhere; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .secondary { background: #74665c; }
+    #scanner { margin-top: 20px; }
+    #message {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+      background: #f5f1e9;
+      color: #30251f;
+    }
+    .hidden { display: none; }
     footer { margin-top: 24px; font-size: 12px; text-align: center; }
   </style>
 </head>
@@ -56,7 +66,7 @@
   <main>
     <div class="brand">F O L D I T</div>
     <h1>Coffee Club</h1>
-    <p>Staff sign-in</p>
+    <p>Staff redemption scanner</p>
 
     <form id="login-form">
       <label for="email">Staff email</label>
@@ -69,7 +79,17 @@
       <button id="login-button" type="submit">Sign in</button>
     </form>
 
-    <p id="message" role="status">Staff access only.</p>
+    <section id="staff-area" class="hidden">
+      <p>Signed in as authorised staff. Scan a member's QR code.</p>
+      <button id="start-button">Start camera scanner</button>
+      <div id="scanner" class="hidden"></div>
+      <button id="stop-button" class="secondary hidden">Stop scanner</button>
+      <button id="logout-button" class="secondary">Sign out</button>
+    </section>
+
+    <div id="message" role="status" aria-live="polite">
+      Please sign in with your staff account.
+    </div>
     <footer>Foldit Coffee Club · Staff use only</footer>
   </main>
 
@@ -80,47 +100,149 @@
     const SUPABASE_URL =
       "https://ussarummnhjahsilugrb.supabase.co";
 
-    // We'll add the public publishable key in the next step.
+    // Replace this example text with your existing public publishable key.
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
 
-    const message = document.getElementById("message");
-    const form = document.getElementById("login-form");
-    const button = document.getElementById("login-button");
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
 
-    form.addEventListener("submit", async (event) => {
+    const $ = (id) => document.getElementById(id);
+    let scanner = null;
+    let busy = false;
+
+    function showMessage(text) {
+      $("message").textContent = text;
+    }
+
+    function showSignedIn(signedIn) {
+      $("login-form").classList.toggle("hidden", signedIn);
+      $("staff-area").classList.toggle("hidden", !signedIn);
+    }
+
+    async function stopScanner() {
+      if (scanner) {
+        try {
+          if (scanner.isScanning) await scanner.stop();
+          scanner.clear();
+        } catch (_) {}
+        scanner = null;
+      }
+      $("scanner").classList.add("hidden");
+      $("stop-button").classList.add("hidden");
+      $("start-button").disabled = false;
+    }
+
+    $("login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
+      $("login-button").disabled = true;
+      showMessage("Signing in…");
 
-      if (!SUPABASE_PUBLISHABLE_KEY) {
-        message.textContent =
-          "Setup incomplete. Please finish the staff scanner configuration.";
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: $("email").value.trim(),
+          password: $("password").value
+        });
+        if (error) throw error;
+
+        showSignedIn(true);
+        $("password").value = "";
+        showMessage("Signed in. Start the scanner when ready.");
+      } catch (error) {
+        showMessage(error.message || "Sign-in failed.");
+      } finally {
+        $("login-button").disabled = false;
+      }
+    });
+
+    $("start-button").addEventListener("click", async () => {
+      if (!window.Html5Qrcode) {
+        showMessage("Scanner library failed to load. Refresh and try again.");
         return;
       }
 
-      button.disabled = true;
-      message.textContent = "Signing in…";
+      $("start-button").disabled = true;
+      $("scanner").classList.remove("hidden");
+      $("stop-button").classList.remove("hidden");
+      showMessage("Opening camera…");
 
       try {
-        const supabase = createClient(
-          SUPABASE_URL,
-          SUPABASE_PUBLISHABLE_KEY
+        scanner = new Html5Qrcode("scanner");
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 240, height: 240 } },
+          async (decodedText) => {
+            if (busy) return;
+            busy = true;
+            await stopScanner();
+            showMessage("Checking membership…");
+
+            try {
+              // QR codes must contain the member's UUID qr_token.
+              const token = decodedText.trim();
+              const uuidPattern =
+                /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+              if (!uuidPattern.test(token)) {
+                showMessage("Invalid QR code. Please scan a Foldit member QR code.");
+                return;
+              }
+
+              const { data: { session } } =
+                await supabase.auth.getSession();
+
+              if (!session) {
+                showSignedIn(false);
+                showMessage("Please sign in again.");
+                return;
+              }
+
+              const { data, error } = await supabase.functions.invoke(
+                "redeem-coffee",
+                { body: { qr_token: token } }
+              );
+
+              if (error) {
+                showMessage("Could not verify coffee. Please check your connection and try again.");
+                return;
+              }
+
+              if (data?.valid === true) {
+                showMessage("✓ " + data.message);
+              } else {
+                showMessage("✕ " + (data?.message || data?.error || "Coffee not approved."));
+              }
+            } catch (_) {
+              showMessage("Could not verify coffee. Please try again.");
+            } finally {
+              busy = false;
+            }
+          },
+          () => {}
         );
-
-        const { error } = await supabase.auth.signInWithPassword({
-          email: document.getElementById("email").value.trim(),
-          password: document.getElementById("password").value
-        });
-
-        if (error) throw error;
-
-        message.textContent =
-          "Staff sign-in successful. Scanner setup is the next step.";
-      } catch (error) {
-        message.textContent =
-          error.message || "Sign-in failed. Please try again.";
-      } finally {
-        button.disabled = false;
+        showMessage("Camera ready. Scan a member QR code.");
+      } catch (_) {
+        await stopScanner();
+        showMessage("Camera unavailable. Allow camera access and use the website over HTTPS.");
       }
     });
+
+    $("stop-button").addEventListener("click", async () => {
+      await stopScanner();
+      showMessage("Scanner stopped.");
+    });
+
+    $("logout-button").addEventListener("click", async () => {
+      await stopScanner();
+      await supabase.auth.signOut();
+      showSignedIn(false);
+      showMessage("Signed out.");
+    });
+
+    const { data: { session } } = await supabase.auth.getSession();
+    showSignedIn(!!session);
+    if (session) showMessage("You are signed in. Start the scanner when ready.");
   </script>
 </body>
 </html>
