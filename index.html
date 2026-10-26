@@ -4,56 +4,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Foldit Coffee Club | Staff Scanner</title>
+  <title>Foldit Coffee Club — Staff</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f6f3ed;
-      color: #29271f;
       display: grid;
       place-items: center;
       padding: 24px;
+      background: #f5f1e9;
+      color: #30251f;
+      font-family: Arial, sans-serif;
     }
     main {
       width: 100%;
-      max-width: 460px;
+      max-width: 420px;
+      padding: 32px;
       background: white;
-      border-radius: 22px;
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: 0 8px 32px #0000000c;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px #30251f12;
     }
-    .brand {
-      font-size: 13px;
-      letter-spacing: 4px;
-      font-weight: 700;
-      color: #756b58;
+    .brand { letter-spacing: 5px; font-weight: bold; }
+    h1 { margin-bottom: 8px; }
+    p { line-height: 1.5; color: #6d625b; }
+    label { display: block; margin-top: 18px; font-weight: bold; }
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-top: 7px;
+      border: 1px solid #d6cec5;
+      border-radius: 8px;
+      font-size: 16px;
     }
-    h1 { font-size: 30px; margin: 12px 0 8px; }
-    p { color: #68645c; line-height: 1.5; }
-    .status {
-      background: #f6f3ed;
-      border-radius: 12px;
-      padding: 18px;
-      margin-top: 24px;
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 22px;
+      border: 0;
+      border-radius: 8px;
+      background: #30251f;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
-    .status strong { display: block; margin-bottom: 6px; }
-    .note { font-size: 13px; margin-top: 22px; }
+    #message { overflow-wrap: anywhere; }
+    footer { margin-top: 24px; font-size: 12px; text-align: center; }
   </style>
 </head>
 <body>
   <main>
     <div class="brand">F O L D I T</div>
     <h1>Coffee Club</h1>
-    <p>Staff redemption scanner</p>
-    <div class="status">
-      <strong>Scanner setup in progress</strong>
-      <p>Once connected, you’ll be able to scan a member’s QR code and check their daily coffee allowance.</p>
-    </div>
-    <p class="note">Staff access only · Foldit Coffee Club</p>
+    <p>Staff sign-in</p>
+
+    <form id="login-form">
+      <label for="email">Staff email</label>
+      <input id="email" type="email" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password"
+        autocomplete="current-password" required>
+
+      <button id="login-button" type="submit">Sign in</button>
+    </form>
+
+    <p id="message" role="status">Staff access only.</p>
+    <footer>Foldit Coffee Club · Staff use only</footer>
   </main>
+
+  <script type="module">
+    import { createClient } from
+      "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL =
+      "https://ussarummnhjahsilugrb.supabase.co";
+
+    // We'll add the public publishable key in the next step.
+    const SUPABASE_PUBLISHABLE_KEY = "";
+
+    const message = document.getElementById("message");
+    const form = document.getElementById("login-form");
+    const button = document.getElementById("login-button");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!SUPABASE_PUBLISHABLE_KEY) {
+        message.textContent =
+          "Setup incomplete. Please finish the staff scanner configuration.";
+        return;
+      }
+
+      button.disabled = true;
+      message.textContent = "Signing in…";
+
+      try {
+        const supabase = createClient(
+          SUPABASE_URL,
+          SUPABASE_PUBLISHABLE_KEY
+        );
+
+        const { error } = await supabase.auth.signInWithPassword({
+          email: document.getElementById("email").value.trim(),
+          password: document.getElementById("password").value
+        });
+
+        if (error) throw error;
+
+        message.textContent =
+          "Staff sign-in successful. Scanner setup is the next step.";
+      } catch (error) {
+        message.textContent =
+          error.message || "Sign-in failed. Please try again.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
