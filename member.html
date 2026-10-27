@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foldit Coffee Club</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f1e9;
+      color: #29251f;
+      margin: 0;
+      padding: 24px;
+    }
+    main {
+      max-width: 420px;
+      margin: 40px auto;
+      background: white;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px #00000012;
+    }
+    h1 { margin-top: 0; }
+    p { line-height: 1.5; }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 13px;
+      margin-top: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input { border: 1px solid #c9c2b7; }
+    button {
+      border: 0;
+      background: #29251f;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; }
+    #message { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Foldit Coffee Club ☕</h1>
+    <p>Sign in to your membership or create your account.</p>
+
+    <form id="auth-form">
+      <input id="email" type="email" placeholder="Email address"
+        autocomplete="email" required>
+      <input id="password" type="password" placeholder="Password"
+        autocomplete="current-password" minlength="8" required>
+      <button type="submit" id="signin">Sign in</button>
+      <button type="button" id="signup">Create account</button>
+    </form>
+
+    <p id="message" role="status"></p>
+    <button id="signout" hidden>Sign out</button>
+  </main>
+
+  <script type="module">
+    import { createClient } from
+      "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL =
+      "https://ussarummnhjahsilugrb.supabase.co";
+
+    // Replace this placeholder with your Supabase publishable key.
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    const form = document.getElementById("auth-form");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const message = document.getElementById("message");
+    const signin = document.getElementById("signin");
+    const signup = document.getElementById("signup");
+    const signout = document.getElementById("signout");
+
+    function showMessage(text) {
+      message.textContent = text;
+    }
+
+    async function refreshSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      form.hidden = Boolean(session);
+      signout.hidden = !session;
+
+      if (session) {
+        showMessage(
+          "You are signed in as " + session.user.email +
+          ". Membership and QR access will be connected next."
+        );
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      signin.disabled = true;
+      signup.disabled = true;
+      showMessage("Signing in…");
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.value.trim(),
+        password: password.value
+      });
+
+      signin.disabled = false;
+      signup.disabled = false;
+
+      if (error) {
+        showMessage(error.message);
+        return;
+      }
+
+      await refreshSession();
+    });
+
+    signup.addEventListener("click", async () => {
+      signin.disabled = true;
+      signup.disabled = true;
+      showMessage("Creating account…");
+
+      const { error } = await supabase.auth.signUp({
+        email: email.value.trim(),
+        password: password.value
+      });
+
+      signin.disabled = false;
+      signup.disabled = false;
+
+      if (error) {
+        showMessage(error.message);
+      } else {
+        showMessage(
+          "Account request submitted. Check your email if confirmation is required, then sign in."
+        );
+      }
+    });
+
+    signout.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      showMessage("You have signed out.");
+      await refreshSession();
+    });
+
+    await refreshSession();
+  </script>
+</body>
+</html>
