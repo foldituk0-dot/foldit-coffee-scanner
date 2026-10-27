@@ -120,29 +120,6 @@
 
       await refreshSession();
     });
-
-    signup.addEventListener("click", async () => {
-      signin.disabled = true;
-      signup.disabled = true;
-      showMessage("Creating account…");
-
-      const { error } = await supabase.auth.signUp({
-        email: email.value.trim(),
-        password: password.value
-      });
-
-      signin.disabled = false;
-      signup.disabled = false;
-
-      if (error) {
-        showMessage(error.message);
-      } else {
-        showMessage(
-          "Account request submitted. Check your email if confirmation is required, then sign in."
-        );
-      }
-    });
-
     signout.addEventListener("click", async () => {
       await supabase.auth.signOut();
       showMessage("You have signed out.");
