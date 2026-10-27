@@ -102,7 +102,6 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       signin.disabled = true;
-      signup.disabled = true;
       showMessage("Signing in…");
 
       const { error } = await supabase.auth.signInWithPassword({
