@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fold It Coffee Club - Staff Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 30px auto;
+      padding: 20px;
+      text-align: center;
+      color: #30251f;
+    }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+    button { cursor: pointer; }
+    #scanner { margin-top: 20px; }
+    #result { margin-top: 20px; font-size: 20px; font-weight: bold; }
+    .approved { color: green; }
+    .rejected { color: #c62828; }
+  </style>
+</head>
+<body>
+  <h1>Fold It Coffee Club</h1>
+  <h2>Staff Scanner</h2>
+
+  <form id="login-form">
+    <input id="email" type="email" placeholder="Staff email" required>
+    <input id="password" type="password" placeholder="Password" required>
+    <button id="login-button" type="submit">Staff sign in</button>
+  </form>
+
+  <section id="staff-area" hidden>
+    <p>Signed in: <span id="staff-email"></span></p>
+    <button id="start-button" type="button">Start QR scanner</button>
+    <div id="scanner"></div>
+    <p id="result"></p>
+    <button id="signout-button" type="button">Sign out</button>
+  </section>
+
+  <p id="message"></p>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://ussarummnhjahsilugrb.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const form = document.getElementById("login-form");
+    const staffArea = document.getElementById("staff-area");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+    const startButton = document.getElementById("start-button");
+
+    let scanner = null;
+    let session = null;
+    let processing = false;
+
+    function showResult(text, approved) {
+      result.textContent = text;
+      result.className = approved ? "approved" : "rejected";
+    }
+
+    async function stopScanner() {
+      if (scanner) {
+        try {
+          if (scanner.isScanning) await scanner.stop();
+          scanner.clear();
+        } catch (error) {
+          console.log(error);
+        }
+        scanner = null;
+      }
+      startButton.disabled = false;
+    }
+
+    async function redeem(token) {
+      if (processing) return;
+      processing = true;
+      showResult("Checking coffee...", false);
+
+      try {
+        await stopScanner();
+
+        const { data, error } = await supabase.functions.invoke(
+          "redeem-coffee",
+          {
+            body: { qr_token: token },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            }
+          }
+        );
+
+        if (error) {
+          showResult(error.message || "Could not check QR code.", false);
+        } else {
+          showResult(
+            data?.message || "Could not check QR code.",
+            data?.valid === true
+          );
+        }
+      } catch (error) {
+        showResult("Something went wrong. Please try again.", false);
+      }
+
+      processing = false;
+    }
+
+    startButton.addEventListener("click", async () => {
+      result.textContent = "";
+      startButton.disabled = true;
+
+      try {
+        scanner = new Html5Qrcode("scanner");
+
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          async (decodedText) => {
+            await redeem(decodedText);
+          },
+          () => {}
+        );
+      } catch (error) {
+        showResult("Camera could not start. Please allow camera access.", false);
+        await stopScanner();
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "Signing in...";
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value
+      });
+
+      if (error) {
+        message.textContent = error.message;
+        return;
+      }
+
+      session = data.session;
+
+      const { data: staff, error: staffError } = await supabase
+        .from("coffee_staff")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (staffError || !staff) {
+        await supabase.auth.signOut();
+        session = null;
+        message.textContent = "This account is not authorised as staff.";
+        return;
+      }
+
+      form.hidden = true;
+      staffArea.hidden = false;
+      document.getElementById("staff-email").textContent = session.user.email;
+      message.textContent = "Staff access approved.";
+    });
+
+    document.getElementById("signout-button").addEventListener("click", async () => {
+      await stopScanner();
+      await supabase.auth.signOut();
+      session = null;
+      staffArea.hidden = true;
+      form.hidden = false;
+      showResult("", false);
+      message.textContent = "Signed out.";
+    });
+  </script>
+</body>
+</html>
