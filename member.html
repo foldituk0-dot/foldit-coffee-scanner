@@ -209,11 +209,16 @@ if (
     });
 
     signout.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      details.hidden = true;
-      showMessage("You have signed out.");
-      await refreshSession();
-    });
+  await supabase.auth.signOut();
+  document.getElementById("member-details").hidden = true;
+  document.getElementById("daily-qr").getContext("2d").clearRect(
+    0, 0,
+    document.getElementById("daily-qr").width,
+    document.getElementById("daily-qr").height
+  );
+  showMessage("You have signed out.");
+  await refreshSession();
+});
 
     await refreshSession();
   </script>
