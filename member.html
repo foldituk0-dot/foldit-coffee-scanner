@@ -4,218 +4,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Foldit Coffee Club</title>
+  <title>Fold It Coffee Club</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f1e9;
-      color: #29251f;
-      margin: 0;
-      padding: 24px;
-    }
-    main {
-      max-width: 420px;
+      max-width: 480px;
       margin: 40px auto;
-      background: white;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 4px 18px #00000012;
+      padding: 20px;
+      text-align: center;
+      color: #30251f;
     }
-    h1 { margin-top: 0; }
-    p { line-height: 1.5; }
     input, button {
       box-sizing: border-box;
       width: 100%;
-      padding: 13px;
-      margin-top: 12px;
-      border-radius: 8px;
+      padding: 14px;
+      margin: 8px 0;
       font-size: 16px;
     }
-    input { border: 1px solid #c9c2b7; }
-    button {
-      border: 0;
-      background: #29251f;
-      color: white;
-      cursor: pointer;
-    }
-    button:disabled { opacity: 0.6; }
-    #message, #qr-message { overflow-wrap: anywhere; }
-    #daily-qr {
-      display: block;
-      max-width: 100%;
-      margin: 20px auto;
-    }
+    button { cursor: pointer; }
+    #details { margin-top: 25px; }
+    #qr { margin: 20px auto; }
+    #message { margin-top: 16px; }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Foldit Coffee Club ☕</h1>
-    <p>Sign in to your membership or create your account.</p>
+  <h1>Fold It Coffee Club</h1>
+  <p>Your daily coffee, on us.</p>
 
-    <form id="auth-form">
-      <input id="email" type="email"
-        placeholder="Email address"
-        autocomplete="email" required>
+  <form id="login-form">
+    <input id="email" type="email" placeholder="Email address" required>
+    <input id="password" type="password" placeholder="Password" required>
+    <button id="login-button" type="submit">Sign in</button>
+  </form>
 
-      <input id="password" type="password"
-        placeholder="Password"
-        autocomplete="current-password"
-        minlength="8" required>
+  <section id="details" hidden>
+    <h2>Your Membership</h2>
+    <p id="status"></p>
+    <p id="expiry"></p>
+    <p>Show this QR code to staff for your daily coffee.</p>
+    <canvas id="qr"></canvas>
+    <p id="qr-expiry"></p>
+    <button id="signout-button" type="button">Sign out</button>
+  </section>
 
-      <button type="submit" id="signin">Sign in</button>
-    </form>
-
-    <p id="message" role="status"></p>
-
-    <section id="member-details" hidden>
-      <h2>Your Membership</h2>
-      <p id="membership-status"></p>
-      <p id="membership-expiry"></p>
-
-      <h2>Your Daily Coffee QR Code</h2>
-      <p>Show this code to a member of staff when claiming your coffee.</p>
-
-      <canvas id="daily-qr"></canvas>
-      <p id="qr-message" role="status"></p>
-    </section>
-
-    <button id="signout" hidden>Sign out</button>
-  </main>
+  <p id="message"></p>
 
   <script type="module">
-    import { createClient } from
-      "https://esm.sh/@supabase/supabase-js@2";
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import QRCode from "https://esm.sh/qrcode@1.5.4";
 
-    import { toCanvas } from
-      "https://esm.sh/qrcode@1.5.4";
+    const SUPABASE_URL = "https://ussarummnhjahsilugrb.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
 
-    const SUPABASE_URL =
-      "https://ussarummnhjahsilugrb.supabase.co";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-    const SUPABASE_PUBLISHABLE_KEY =
-      "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
-
-    const supabase = createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-
-    const form = document.getElementById("auth-form");
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
+    const form = document.getElementById("login-form");
+    const loginButton = document.getElementById("login-button");
+    const details = document.getElementById("details");
+    const status = document.getElementById("status");
+    const expiry = document.getElementById("expiry");
+    const canvas = document.getElementById("qr");
     const message = document.getElementById("message");
-    const signin = document.getElementById("signin");
-    const signout = document.getElementById("signout");
+    const qrExpiry = document.getElementById("qr-expiry");
+
+    let session = null;
 
     function showMessage(text) {
       message.textContent = text;
     }
 
     async function generateDailyQR() {
-      const qrMessage =
-        document.getElementById("qr-message");
+      showMessage("Creating your daily QR code...");
+      canvas.hidden = true;
+      qrExpiry.textContent = "";
 
-      const canvas =
-        document.getElementById("daily-qr");
-
-      qrMessage.textContent =
-        "Preparing your daily QR code...";
-
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        qrMessage.textContent = "Please sign in first.";
-        return;
-      }
-
-      const { data, error } =
-        await supabase.functions.invoke(
-          "generate-daily-qr",
-          {
-            headers: {
-              Authorization:
-                `Bearer ${session.access_token}`
-            }
+      const { data, error } = await supabase.functions.invoke(
+        "generate-daily-qr",
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
           }
-        );
+        }
+      );
 
-      if (error || !data?.success || !data?.qr_token) {
-        qrMessage.textContent =
-          data?.error ||
-          error?.message ||
-          "Could not create your QR code.";
+      if (error || !data || !data.success || !data.qr_token) {
+        showMessage(data?.error || error?.message || "Could not create your QR code.");
         return;
       }
 
       try {
-        await toCanvas(canvas, data.qr_token, {
+        await QRCode.toCanvas(canvas, data.qr_token, {
           width: 240,
           margin: 2
         });
-
-        qrMessage.textContent =
-          "Your daily coffee QR code is ready. It expires at midnight UK time.";
-      } catch {
-        qrMessage.textContent =
-          "Could not display your QR code.";
+        canvas.hidden = false;
+        qrExpiry.textContent = "Your QR code expires at midnight UK time.";
+        showMessage("Your daily coffee QR code is ready.");
+      } catch (err) {
+        showMessage("Could not display your QR code.");
+        console.error(err);
       }
     }
 
     async function refreshSession() {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
-      form.hidden = Boolean(session);
-      signout.hidden = !session;
+      if (error) {
+        showMessage("Could not check your sign-in.");
+        return;
+      }
 
-      const details =
-        document.getElementById("member-details");
-
-      const status =
-        document.getElementById("membership-status");
-
-      const expiry =
-        document.getElementById("membership-expiry");
+      session = data.session;
 
       if (!session) {
+        form.hidden = false;
         details.hidden = true;
         return;
       }
 
+      form.hidden = true;
       showMessage("Signed in as " + session.user.email);
 
-      const { data: member, error } = await supabase
+      const { data: member, error: memberError } = await supabase
         .from("members")
         .select("subscription_status, membership_expires_at")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      if (error) {
-        showMessage(
-          "Could not load membership: " + error.message
-        );
+      if (memberError) {
+        showMessage("Could not load membership: " + memberError.message);
         details.hidden = true;
         return;
       }
 
       if (!member) {
-        showMessage(
-          "Your login is working, but no membership record was found."
-        );
+        showMessage("Your login is working, but no membership record was found.");
         details.hidden = true;
         return;
       }
 
       details.hidden = false;
-
-      status.textContent =
-        "Membership status: " + member.subscription_status;
-
-      expiry.textContent =
-        "Membership expires: " + member.membership_expires_at;
+      status.textContent = "Membership status: " + member.subscription_status;
+      expiry.textContent = "Membership expires: " + member.membership_expires_at;
 
       const parts = new Intl.DateTimeFormat("en-GB", {
         timeZone: "Europe/London",
@@ -224,72 +154,46 @@
         day: "2-digit"
       }).formatToParts(new Date());
 
-      const values = Object.fromEntries(
-        parts.map(part => [part.type, part.value])
-      );
-
-      const ukToday =
-        `${values.year}-${values.month}-${values.day}`;
+      const today = `${parts.find(p => p.type === "year").value}-${parts.find(p => p.type === "month").value}-${parts.find(p => p.type === "day").value}`;
 
       if (
         member.subscription_status === "active" &&
-        member.membership_expires_at >= ukToday
+        member.membership_expires_at &&
+        member.membership_expires_at >= today
       ) {
         await generateDailyQR();
       } else {
-        document.getElementById("qr-message").textContent =
-          "Your membership is inactive or expired.";
+        canvas.hidden = true;
+        showMessage("Your membership is inactive or expired.");
       }
     }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-
-      signin.disabled = true;
+      loginButton.disabled = true;
       showMessage("Signing in...");
 
-      try {
-        const { error } =
-          await supabase.auth.signInWithPassword({
-            email: email.value.trim(),
-            password: password.value
-          });
-
-        if (error) {
-          showMessage(error.message);
-          return;
-        }
-
-        await refreshSession();
-
-      } catch (error) {
-        showMessage("Sign-in error: " + error.message);
-
-      } finally {
-        signin.disabled = false;
-      }
-    });
-
-    signout.addEventListener("click", async () => {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value
+      });
 
       if (error) {
         showMessage(error.message);
-        return;
+      } else {
+        await refreshSession();
       }
 
-      document.getElementById("member-details").hidden = true;
+      loginButton.disabled = false;
+    });
 
-      const canvas =
-        document.getElementById("daily-qr");
-
-      canvas.getContext("2d").clearRect(
-        0, 0, canvas.width, canvas.height
-      );
-
+    document.getElementById("signout-button").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      session = null;
+      canvas.hidden = true;
+      details.hidden = true;
+      form.hidden = false;
       showMessage("You have signed out.");
-
-      await refreshSession();
     });
 
     await refreshSession();
