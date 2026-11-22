@@ -178,7 +178,15 @@ async function refreshSession() {
   status.textContent = "Membership status: " + member.subscription_status;
   expiry.textContent = "Membership expires: " + member.membership_expires_at;
 }
-
+if (
+  member.subscription_status === "active" &&
+  member.membership_expires_at >=
+    new Date().toLocaleDateString("en-CA", {
+      timeZone: "Europe/London"
+    })
+) {
+  await generateDailyQR();
+}
     
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
