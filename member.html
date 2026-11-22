@@ -68,7 +68,14 @@
     const qrExpiry = document.getElementById("qr-expiry");
 
     let session = null;
+const DEVICE_STORAGE_KEY = "foldit_device_id";
 
+let deviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
+
+if (!deviceId) {
+  deviceId = crypto.randomUUID();
+  localStorage.setItem(DEVICE_STORAGE_KEY, deviceId);
+}
     function showMessage(text) {
       message.textContent = text;
     }
@@ -79,13 +86,16 @@
       qrExpiry.textContent = "";
 
       const { data, error } = await supabase.functions.invoke(
-        "generate-daily-qr",
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
-        }
-      );
+  "generate-daily-qr",
+  {
+    body: {
+      device_id: deviceId
+    },
+    headers: {
+      Authorization: `Bearer ${session.access_token}`
+    }
+  }
+);
 
       if (error || !data || !data.success || !data.qr_token) {
         showMessage(data?.error || error?.message || "Could not create your QR code.");
