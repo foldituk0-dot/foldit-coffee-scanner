@@ -72,7 +72,7 @@
   <script type="module">
    import { createClient } from
   "https://esm.sh/@supabase/supabase-js@2";
-import QRCode from
+import { toCanvas } from
   "https://esm.sh/qrcode@1.5.4";
 
     const SUPABASE_URL =
@@ -126,7 +126,7 @@ async function generateDailyQR() {
   }
 
   try {
-    await QRCode.toCanvas(canvas, data.qr_token, {
+  await toCanvas(canvas, data.qr_token, {
       width: 240,
       margin: 2
     });
