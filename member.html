@@ -139,6 +139,7 @@ async function generateDailyQR() {
 }
 
 
+
 async function refreshSession() {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -153,6 +154,54 @@ async function refreshSession() {
     details.hidden = true;
     return;
   }
+
+  showMessage("Signed in as " + session.user.email);
+
+  const { data: member, error } = await supabase
+    .from("members")
+    .select("subscription_status, membership_expires_at")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+
+  if (error) {
+    showMessage("Could not load membership: " + error.message);
+    details.hidden = true;
+    return;
+  }
+
+  if (!member) {
+    showMessage("No membership record was found.");
+    details.hidden = true;
+    return;
+  }
+
+  details.hidden = false;
+  status.textContent = "Membership status: " + member.subscription_status;
+  expiry.textContent = "Membership expires: " + member.membership_expires_at;
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(
+    parts.map(part => [part.type, part.value])
+  );
+
+  const ukToday = `${values.year}-${values.month}-${values.day}`;
+
+  if (
+    member.subscription_status === "active" &&
+    member.membership_expires_at >= ukToday
+  ) {
+    await generateDailyQR();
+  } else {
+    document.getElementById("qr-message").textContent =
+      "Your membership is inactive or expired.";
+  }
+}
 
   showMessage("Signed in as " + session.user.email);
 
