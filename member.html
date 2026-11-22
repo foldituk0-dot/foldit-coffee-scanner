@@ -68,6 +68,7 @@
     const qrExpiry = document.getElementById("qr-expiry");
 
     let session = null;
+    let qrRefreshTimer = null;
 const DEVICE_STORAGE_KEY = "foldit_device_id";
 
 let deviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
@@ -80,7 +81,8 @@ if (!deviceId) {
       message.textContent = text;
     }
 
-    async function generateDailyQR() {
+    async function generateDailyQR() {if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
+qrRefreshTimer = null;
       showMessage("Creating your daily QR code...");
       canvas.hidden = true;
       qrExpiry.textContent = "";
@@ -108,7 +110,10 @@ if (!deviceId) {
           margin: 2
         });
         canvas.hidden = false;
-        qrExpiry.textContent = "Your QR code expires at midnight UK time.";
+        qrExpiry.textContent = "QR code refreshes every 15 seconds.";
+qrRefreshTimer = setTimeout(() => {
+  if (session) generateDailyQR();
+}, 14000);
         showMessage("Your daily coffee QR code is ready.");
       } catch (err) {
         showMessage("Could not display your QR code.");
