@@ -130,3 +130,36 @@ async function refreshSession() {
   status.textContent = "Membership status: " + member.subscription_status;
   expiry.textContent = "Membership expires: " + member.membership_expires_at;
 }
+
+    
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      signin.disabled = true;
+      showMessage("Signing in...");
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.value.trim(),
+        password: password.value
+      });
+
+      signin.disabled = false;
+
+      if (error) {
+        showMessage(error.message);
+        return;
+      }
+
+      await refreshSession();
+    });
+
+    signout.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      details.hidden = true;
+      showMessage("You have signed out.");
+      await refreshSession();
+    });
+
+    await refreshSession();
+  </script>
+</body>
+</html>
