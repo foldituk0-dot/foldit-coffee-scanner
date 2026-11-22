@@ -56,6 +56,11 @@
     </form>
 
     <p id="message" role="status"></p>
+    <section id="member-details" hidden>
+  <h2>Your Membership</h2>
+  <p id="membership-status"></p>
+  <p id="membership-expiry"></p>
+</section>
     <button id="signout" hidden>Sign out</button>
   </main>
 
@@ -85,46 +90,43 @@
       message.textContent = text;
     }
 
-    async function refreshSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      form.hidden = Boolean(session);
-      signout.hidden = !session;
 
-      if (session) {
-        showMessage(
-          "You are signed in as " + session.user.email +
-          ". Membership and QR access will be connected next."
-        );
-      }
-    }
+async function refreshSession() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      signin.disabled = true;
-      showMessage("Signing in…");
+  form.hidden = Boolean(session);
+  signout.hidden = !session;
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.value.trim(),
-        password: password.value
-      });
+  const details = document.getElementById("member-details");
+  const status = document.getElementById("membership-status");
+  const expiry = document.getElementById("membership-expiry");
 
-      signin.disabled = false;
-      
+  if (!session) {
+    details.hidden = true;
+    return;
+  }
 
-      if (error) {
-        showMessage(error.message);
-        return;
-      }
+  showMessage("Signed in as " + session.user.email);
 
-      await refreshSession();
-    });
-    signout.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      showMessage("You have signed out.");
-      await refreshSession();
-    });
+  const { data: member, error } = await supabase
+    .from("members")
+    .select("subscription_status, membership_expires_at")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
 
-    await refreshSession();
-  </script>
-</body>
-</html>
+  if (error) {
+    showMessage("Could not load membership: " + error.message);
+    details.hidden = true;
+    return;
+  }
+
+  if (!member) {
+    showMessage("Your login is working, but no membership record was found.");
+    details.hidden = true;
+    return;
+  }
+
+  details.hidden = false;
+  status.textContent = "Membership status: " + member.subscription_status;
+  expiry.textContent = "Membership expires: " + member.membership_expires_at;
+}
