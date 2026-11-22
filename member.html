@@ -97,6 +97,47 @@ import QRCode from
       message.textContent = text;
     }
 
+async function generateDailyQR() {
+  const qrMessage = document.getElementById("qr-message");
+  const canvas = document.getElementById("daily-qr");
+
+  qrMessage.textContent = "Preparing your daily QR code...";
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    qrMessage.textContent = "Please sign in first.";
+    return;
+  }
+
+  const { data, error } = await supabase.functions.invoke(
+    "generate-daily-qr",
+    {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
+    }
+  );
+
+  if (error || !data?.success || !data?.qr_token) {
+    qrMessage.textContent =
+      data?.error || error?.message || "Could not create your QR code.";
+    return;
+  }
+
+  try {
+    await QRCode.toCanvas(canvas, data.qr_token, {
+      width: 240,
+      margin: 2
+    });
+
+    qrMessage.textContent =
+      "Your daily coffee QR code is ready. It expires at midnight UK time.";
+  } catch {
+    qrMessage.textContent = "Could not display your QR code.";
+  }
+}
+
 
 async function refreshSession() {
   const { data: { session } } = await supabase.auth.getSession();
