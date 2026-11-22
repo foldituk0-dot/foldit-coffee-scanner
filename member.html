@@ -63,6 +63,7 @@
     <p class="small">When paying, use the same email address as your Fold It account.</p>
     <button id="pay-button" type="button">Pay £19.99</button>
     <button id="check-payment-button" type="button">I've paid — check my membership</button>
+    <button id="payment-signout-button" type="button">Sign out / use another account</button>
   </section>
 
   <section id="details" hidden>
@@ -85,7 +86,9 @@
     const SUPABASE_URL = "https://ussarummnhjahsilugrb.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
     const PAYMENT_LINK = "https://pay.gocardless.com/BRT01M82MJQSQH4X8MK0CBC5JP0K5";
-    const MEMBER_URL = "https://foldituk0-dot.github.io/fold-it-coffee-scanner/member.html";
+
+    // Correct working member page address
+    const MEMBER_URL = "https://foldituk0-dot.github.io/foldit-coffee-scanner/member.html";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
@@ -216,7 +219,6 @@
 
         status.textContent = "Membership status: Active";
         expiry.textContent = "Membership expires: " + member.membership_expires_at;
-
         await generateDailyQR();
       } else {
         if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
@@ -353,7 +355,7 @@
 
     document.getElementById("refresh-button").addEventListener("click", refreshSession);
 
-    document.getElementById("signout-button").addEventListener("click", async () => {
+    async function signOut() {
       if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
       qrRefreshTimer = null;
 
@@ -361,8 +363,11 @@
       session = null;
       canvas.hidden = true;
       showLoggedOut();
-      showMessage("You have signed out.");
-    });
+      showMessage("You have signed out. You can now create an account or sign in.");
+    }
+
+    document.getElementById("signout-button").addEventListener("click", signOut);
+    document.getElementById("payment-signout-button").addEventListener("click", signOut);
 
     await refreshSession();
   </script>
