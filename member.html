@@ -397,11 +397,6 @@
   );
 });
 
-    document.getElementById("check-payment-button").addEventListener("click", async () => {
-      showMessage("Checking your membership. This may take a moment after payment confirmation.");
-      await refreshSession();
-    });
-
     document.getElementById("refresh-button").addEventListener("click", refreshSession);
 
     async function signOut() {
