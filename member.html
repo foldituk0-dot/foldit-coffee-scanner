@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fold It Coffee Club</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,6 +15,7 @@
       text-align: center;
       color: #667344;
     }
+
     input, button {
       box-sizing: border-box;
       width: 100%;
@@ -21,122 +23,202 @@
       margin: 8px 0;
       font-size: 16px;
     }
-    button { cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: wait; }
-    #details, #payment-panel { margin-top: 25px; }
-    #qr { margin: 20px auto; }
-    #message { margin-top: 16px; overflow-wrap: anywhere; }
-    .small { font-size: 14px; }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    #details, #payment-panel {
+      margin-top: 25px;
+    }
+
+    #qr {
+      margin: 20px auto;
+    }
+
+    #message {
+      margin-top: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    .small {
+      font-size: 14px;
+    }
   </style>
 </head>
+
 <body>
+
   <h1>Fold It Coffee Club</h1>
   <p>Your daily coffee, on us.</p>
 
+  <!-- SIGN IN -->
   <section id="login-panel">
     <h2>Sign in</h2>
+
     <form id="login-form">
-      <input id="login-email" type="email" placeholder="Email address" required>
-      <input id="login-password" type="password" placeholder="Password" required>
-      <button id="login-button" type="submit">Sign in</button>
+      <input id="login-email" type="email"
+        placeholder="Email address" required>
+
+      <input id="login-password" type="password"
+        placeholder="Password" required>
+
+      <button id="login-button" type="submit">
+        Sign in
+      </button>
     </form>
-    <button id="show-signup" type="button">Create account</button>
+
+    <button id="show-signup" type="button">
+      Create account
+    </button>
   </section>
 
+  <!-- CREATE ACCOUNT -->
   <section id="signup-panel" hidden>
     <h2>Create your membership</h2>
+
     <form id="signup-form">
-      <input id="full-name" type="text" placeholder="Full name" required>
-      <input id="signup-email" type="email" placeholder="Email address" required>
-      <input id="signup-password" type="password" placeholder="Create password" minlength="8" required>
-      <input id="confirm-password" type="password" placeholder="Confirm password" minlength="8" required>
-      <button id="signup-button" type="submit">Create account</button>
+      <input id="full-name" type="text"
+        placeholder="Full name" required>
+
+      <input id="signup-email" type="email"
+        placeholder="Email address" required>
+
+      <input id="signup-password" type="password"
+        placeholder="Create password" minlength="8" required>
+
+      <input id="confirm-password" type="password"
+        placeholder="Confirm password" minlength="8" required>
+
+      <button id="signup-button" type="submit">
+        Create account
+      </button>
     </form>
-    <button id="show-login" type="button">Back to sign in</button>
+
+    <button id="show-login" type="button">
+      Back to sign in
+    </button>
   </section>
-<section id="payment-panel" hidden>
-  <h2>Complete your membership</h2>
-  <p>Your annual membership costs <strong>£19.99</strong>.</p>
-  <p>One-off payment for 12 months of membership.</p>
 
-  <input
-    id="payment-full-name"
-    type="text"
-    placeholder="Full name"
-    required
-  >
+  <!-- BANK TRANSFER PAYMENT -->
+  <section id="payment-panel" hidden>
+    <h2>Complete your membership</h2>
 
-  <p class="small">
-    Please use your Fold It account email address.
-  </p>
+    <p>Your annual membership costs <strong>£19.99</strong>.</p>
 
-  <button id="pay-button" type="button">
-    Pay £19.99 by Bank Transfer
-  </button>
+    <p>
+      It is a one-off payment and gives you 12 months of membership.
+    </p>
 
-  <div id="bank-transfer-details" hidden>
-    <h3>Bank transfer details</h3>
-
-    <p><strong>Account name:</strong><br>DEEPA INTERNATIONAL LTD</p>
-    <p><strong>Sort code:</strong><br>04-14-50</p>
-    <p><strong>Account number:</strong><br>64123136</p>
-
-    <p><strong>Payment reference:</strong></p>
-    <p id="bank-payment-reference"></p>
-
-    <p><strong>Amount to pay: £19.99</strong></p>
+    <input
+      id="payment-full-name"
+      type="text"
+      placeholder="Full name"
+      required
+    >
 
     <p class="small">
-      Your membership will remain pending until we receive and
-      manually confirm your bank transfer. Please allow us time
-      to check your payment.
+      When paying, use the same email address as your Fold It account.
     </p>
-  </div>
 
-  <button id="payment-signout-button" type="button">
-    Sign out / use another account
-  </button>
-</section>
-    <h2>Complete your membership</h2>
-    <p>Your annual membership costs <strong>£19.99</strong>.</p>
-    <p>It is a one-off payment and gives you 12 months of membership.</p>
-    <input id="payment-full-name" type="text" placeholder="Full name" required>
-    <p class="small">When paying, use the same email address as your Fold It account.</p>
-    <button id="pay-button" type="button">Pay £19.99</button>
-    <button id="check-payment-button" type="button">I've paid — check my membership</button>
-    <button id="payment-signout-button" type="button">Sign out / use another account</button>
+    <button id="pay-button" type="button">
+      Pay £19.99 by Bank Transfer
+    </button>
+
+    <div id="bank-transfer-details" hidden>
+      <h3>Bank transfer details</h3>
+
+      <p>
+        <strong>Account name:</strong><br>
+        DEEPA INTERNATIONAL LTD
+      </p>
+
+      <p>
+        <strong>Sort code:</strong><br>
+        04-14-50
+      </p>
+
+      <p>
+        <strong>Account number:</strong><br>
+        64123136
+      </p>
+
+      <p><strong>Payment reference:</strong></p>
+      <p id="bank-payment-reference"></p>
+
+      <p><strong>Amount to pay: £19.99</strong></p>
+
+      <p class="small">
+        Your membership will remain pending until we receive and
+        manually confirm your bank transfer. Please allow us time
+        to check your payment.
+      </p>
+    </div>
+
+    <button id="payment-signout-button" type="button">
+      Sign out / use another account
+    </button>
   </section>
 
+  <!-- ACTIVE MEMBERSHIP -->
   <section id="details" hidden>
     <h2>Your Membership</h2>
+
     <p id="status"></p>
     <p id="expiry"></p>
+
     <p>Show this QR code to staff for your daily coffee.</p>
+
     <canvas id="qr"></canvas>
+
     <p id="qr-expiry"></p>
-    <button id="refresh-button" type="button">Refresh membership</button>
-    <button id="signout-button" type="button">Sign out</button>
+
+    <button id="refresh-button" type="button">
+      Refresh membership
+    </button>
+
+    <button id="signout-button" type="button">
+      Sign out
+    </button>
   </section>
 
   <p id="message" role="status"></p>
 
   <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    import QRCode from "https://esm.sh/qrcode@1.5.4";
+    import { createClient } from
+      "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL = "https://ussarummnhjahsilugrb.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
-    const PAYMENT_LINK = "https://pay.gocardless.com/BRT01M82MJQSQH4X8MK0CBC5JP0K5";
+    import QRCode from
+      "https://esm.sh/qrcode@1.5.4";
 
-    // Correct working member page address
-    const MEMBER_URL = "https://foldituk0-dot.github.io/foldit-coffee-scanner/member.html";
+    const SUPABASE_URL =
+      "https://ussarummnhjahsilugrb.supabase.co";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
+
+    // Keep this for future GoCardless restoration.
+    const PAYMENT_LINK =
+      "https://pay.gocardless.com/BRT01M82MJQSQH4X8MK0CBC5JP0K5";
+
+    const MEMBER_URL =
+      "https://foldituk0-dot.github.io/foldit-coffee-scanner/member.html";
+
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
 
     const loginPanel = document.getElementById("login-panel");
     const signupPanel = document.getElementById("signup-panel");
     const paymentPanel = document.getElementById("payment-panel");
     const details = document.getElementById("details");
+
     const message = document.getElementById("message");
     const canvas = document.getElementById("qr");
     const status = document.getElementById("status");
@@ -147,6 +229,7 @@
     let qrRefreshTimer = null;
 
     const DEVICE_STORAGE_KEY = "foldit_device_id";
+
     let deviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
 
     if (!deviceId) {
@@ -173,11 +256,20 @@
         day: "2-digit"
       }).formatToParts(new Date());
 
-      return `${parts.find(p => p.type === "year").value}-${parts.find(p => p.type === "month").value}-${parts.find(p => p.type === "day").value}`;
+      return `${
+        parts.find(p => p.type === "year").value
+      }-${
+        parts.find(p => p.type === "month").value
+      }-${
+        parts.find(p => p.type === "day").value
+      }`;
     }
 
     async function generateDailyQR() {
-      if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
+      if (qrRefreshTimer) {
+        clearTimeout(qrRefreshTimer);
+      }
+
       qrRefreshTimer = null;
 
       showMessage("Creating your daily QR code...");
@@ -194,8 +286,17 @@
         }
       );
 
-      if (error || !data || !data.success || !data.qr_token) {
-        showMessage(data?.error || error?.message || "Could not create your QR code.");
+      if (
+        error ||
+        !data ||
+        !data.success ||
+        !data.qr_token
+      ) {
+        showMessage(
+          data?.error ||
+          error?.message ||
+          "Could not create your QR code."
+        );
         return;
       }
 
@@ -206,13 +307,16 @@
         });
 
         canvas.hidden = false;
-        qrExpiry.textContent = "QR code refreshes every 15 seconds.";
+
+        qrExpiry.textContent =
+          "QR code refreshes every 15 seconds.";
 
         qrRefreshTimer = setTimeout(() => {
           if (session) generateDailyQR();
         }, 14000);
 
         showMessage("Your daily coffee QR code is ready.");
+
       } catch (err) {
         showMessage("Could not display your QR code.");
         console.error(err);
@@ -220,7 +324,8 @@
     }
 
     async function refreshSession() {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } =
+        await supabase.auth.getSession();
 
       if (error) {
         showMessage("Could not check your sign-in.");
@@ -237,14 +342,17 @@
       loginPanel.hidden = true;
       signupPanel.hidden = true;
 
-      const { data: member, error: memberError } = await supabase
-        .from("members")
-        .select("subscription_status, membership_expires_at")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+      const { data: member, error: memberError } =
+        await supabase
+          .from("members")
+          .select("subscription_status, membership_expires_at")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
 
       if (memberError) {
-        showMessage("Could not load membership: " + memberError.message);
+        showMessage(
+          "Could not load membership: " + memberError.message
+        );
         return;
       }
 
@@ -259,18 +367,28 @@
         details.hidden = false;
 
         status.textContent = "Membership status: Active";
-        expiry.textContent = "Membership expires: " + member.membership_expires_at;
+
+        expiry.textContent =
+          "Membership expires: " + member.membership_expires_at;
+
         await generateDailyQR();
+
       } else {
-        if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
+        if (qrRefreshTimer) {
+          clearTimeout(qrRefreshTimer);
+        }
+
         qrRefreshTimer = null;
 
         details.hidden = true;
         canvas.hidden = true;
         paymentPanel.hidden = false;
 
-        const savedName = session.user.user_metadata?.full_name || "";
-        document.getElementById("payment-full-name").value = savedName;
+        const savedName =
+          session.user.user_metadata?.full_name || "";
+
+        document.getElementById("payment-full-name").value =
+          savedName;
 
         showMessage(
           member
@@ -280,140 +398,197 @@
       }
     }
 
-    document.getElementById("show-signup").addEventListener("click", () => {
-      loginPanel.hidden = true;
-      signupPanel.hidden = false;
-      showMessage("");
-    });
-
-    document.getElementById("show-login").addEventListener("click", () => {
-      signupPanel.hidden = true;
-      loginPanel.hidden = false;
-      showMessage("");
-    });
-
-    document.getElementById("signup-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const button = document.getElementById("signup-button");
-      const fullName = document.getElementById("full-name").value.trim();
-      const email = document.getElementById("signup-email").value.trim();
-      const password = document.getElementById("signup-password").value;
-      const confirmPassword = document.getElementById("confirm-password").value;
-
-      if (password !== confirmPassword) {
-        showMessage("Your passwords do not match.");
-        return;
-      }
-
-      button.disabled = true;
-      showMessage("Creating your account...");
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: MEMBER_URL
-        }
+    // Switch to create account
+    document.getElementById("show-signup")
+      .addEventListener("click", () => {
+        loginPanel.hidden = true;
+        signupPanel.hidden = false;
+        showMessage("");
       });
 
-      button.disabled = false;
-
-      if (error) {
-        showMessage(error.message);
-        return;
-      }
-
-      if (!data.session) {
+    // Switch back to sign in
+    document.getElementById("show-login")
+      .addEventListener("click", () => {
         signupPanel.hidden = true;
         loginPanel.hidden = false;
-        showMessage("Account created. Please check your email and click the verification link. Then return here and sign in to continue to payment.");
-        return;
-      }
-
-      await refreshSession();
-    });
-
-    document.getElementById("login-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const button = document.getElementById("login-button");
-      button.disabled = true;
-      showMessage("Signing in...");
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: document.getElementById("login-email").value.trim(),
-        password: document.getElementById("login-password").value
+        showMessage("");
       });
 
-      button.disabled = false;
+    // CREATE ACCOUNT
+    document.getElementById("signup-form")
+      .addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-      if (error) {
-        showMessage(error.message);
-        return;
+        const button =
+          document.getElementById("signup-button");
+
+        const fullName =
+          document.getElementById("full-name").value.trim();
+
+        const email =
+          document.getElementById("signup-email").value.trim();
+
+        const password =
+          document.getElementById("signup-password").value;
+
+        const confirmPassword =
+          document.getElementById("confirm-password").value;
+
+        if (password !== confirmPassword) {
+          showMessage("Your passwords do not match.");
+          return;
+        }
+
+        button.disabled = true;
+        showMessage("Creating your account...");
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: MEMBER_URL
+          }
+        });
+
+        button.disabled = false;
+
+        if (error) {
+          showMessage(error.message);
+          return;
+        }
+
+        if (!data.session) {
+          signupPanel.hidden = true;
+          loginPanel.hidden = false;
+
+          showMessage(
+            "Account created. Please check your email and click the verification link. Then return here and sign in to continue to payment."
+          );
+
+          return;
+        }
+
+        await refreshSession();
+      });
+
+    // SIGN IN
+    document.getElementById("login-form")
+      .addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const button =
+          document.getElementById("login-button");
+
+        button.disabled = true;
+        showMessage("Signing in...");
+
+        const { error } = await supabase.auth.signInWithPassword({
+          email:
+            document.getElementById("login-email").value.trim(),
+
+          password:
+            document.getElementById("login-password").value
+        });
+
+        button.disabled = false;
+
+        if (error) {
+          showMessage(error.message);
+          return;
+        }
+
+        await refreshSession();
+      });
+
+    // BANK TRANSFER PAYMENT
+    document.getElementById("pay-button")
+      .addEventListener("click", async () => {
+
+        if (!session) {
+          showMessage("Please sign in first.");
+          return;
+        }
+
+        const fullName =
+          document.getElementById("payment-full-name")
+            .value.trim();
+
+        if (!fullName) {
+          showMessage("Please enter your full name.");
+          return;
+        }
+
+        const button =
+          document.getElementById("pay-button");
+
+        const bankDetails =
+          document.getElementById("bank-transfer-details");
+
+        button.disabled = true;
+
+        showMessage("Preparing your bank transfer details...");
+
+        const { data, error } = await supabase.rpc(
+          "create_pending_membership",
+          {
+            p_full_name: fullName
+          }
+        );
+
+        button.disabled = false;
+
+        if (error || !data) {
+          showMessage(
+            "Could not prepare payment: " +
+            (error?.message || "Please try again.")
+          );
+          return;
+        }
+
+        document.getElementById(
+          "bank-payment-reference"
+        ).textContent = data;
+
+        bankDetails.hidden = false;
+        button.hidden = true;
+
+        showMessage(
+          "Your payment reference is ready. Please transfer £19.99 using the bank details below."
+        );
+      });
+
+    document.getElementById("refresh-button")
+      .addEventListener("click", refreshSession);
+
+    // SIGN OUT
+    async function signOut() {
+      if (qrRefreshTimer) {
+        clearTimeout(qrRefreshTimer);
       }
 
-      await refreshSession();
-    });
-
-   document.getElementById("pay-button").addEventListener("click", async () => {
-  if (!session) {
-    showMessage("Please sign in first.");
-    return;
-  }
-
-  const fullName = document.getElementById("payment-full-name").value.trim();
-
-  if (!fullName) {
-    showMessage("Please enter your full name.");
-    return;
-  }
-
-  const button = document.getElementById("pay-button");
-  const bankDetails = document.getElementById("bank-transfer-details");
-
-  button.disabled = true;
-  showMessage("Preparing your bank transfer details...");
-
-  const { data, error } = await supabase.rpc("create_pending_membership", {
-    p_full_name: fullName
-  });
-
-  button.disabled = false;
-
-  if (error || !data) {
-    showMessage("Could not prepare payment: " + (error?.message || "Please try again."));
-    return;
-  }
-
-  document.getElementById("bank-payment-reference").textContent = data;
-
-  bankDetails.hidden = false;
-  button.hidden = true;
-
-  showMessage(
-    "Your payment reference is ready. Please transfer £19.99 using the bank details below."
-  );
-});
-
-    document.getElementById("refresh-button").addEventListener("click", refreshSession);
-
-    async function signOut() {
-      if (qrRefreshTimer) clearTimeout(qrRefreshTimer);
       qrRefreshTimer = null;
 
       await supabase.auth.signOut();
+
       session = null;
       canvas.hidden = true;
+
       showLoggedOut();
-      showMessage("You have signed out. You can now create an account or sign in.");
+
+      showMessage(
+        "You have signed out. You can now create an account or sign in."
+      );
     }
 
-    document.getElementById("signout-button").addEventListener("click", signOut);
-    document.getElementById("payment-signout-button").addEventListener("click", signOut);
+    document.getElementById("signout-button")
+      .addEventListener("click", signOut);
+
+    document.getElementById("payment-signout-button")
+      .addEventListener("click", signOut);
 
     await refreshSession();
+
   </script>
 </body>
 </html>
