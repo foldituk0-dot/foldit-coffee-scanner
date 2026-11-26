@@ -105,14 +105,14 @@
     </button>
   </section>
 
-  <!-- BANK TRANSFER PAYMENT -->
+  <!-- GOCARDLESS PAYMENT -->
   <section id="payment-panel" hidden>
     <h2>Complete your membership</h2>
 
     <p>Your annual membership costs <strong>£19.99</strong>.</p>
 
     <p>
-      It is a one-off payment and gives you 12 months of membership.
+      One-off payment. Enjoy 12 months of membership.
     </p>
 
     <input
@@ -123,42 +123,18 @@
     >
 
     <p class="small">
-      When paying, use the same email address as your Fold It account.
+      Please use the same email address as your Fold It account
+      when completing your payment.
     </p>
 
     <button id="pay-button" type="button">
-      Pay £19.99 by Bank Transfer
+      Pay £19.99 securely with GoCardless
     </button>
 
-    <div id="bank-transfer-details" hidden>
-      <h3>Bank transfer details</h3>
-
-      <p>
-        <strong>Account name:</strong><br>
-        DEEPA INTERNATIONAL LTD
-      </p>
-
-      <p>
-        <strong>Sort code:</strong><br>
-        04-14-50
-      </p>
-
-      <p>
-        <strong>Account number:</strong><br>
-        64123136
-      </p>
-
-      <p><strong>Payment reference:</strong></p>
-      <p id="bank-payment-reference"></p>
-
-      <p><strong>Amount to pay: £19.99</strong></p>
-
-      <p class="small">
-        Your membership will remain pending until we receive and
-        manually confirm your bank transfer. Please allow us time
-        to check your payment.
-      </p>
-    </div>
+    <p class="small">
+      Your membership will activate once your payment has been
+      confirmed and matched to your account.
+    </p>
 
     <button id="payment-signout-button" type="button">
       Sign out / use another account
@@ -202,9 +178,8 @@
     const SUPABASE_PUBLISHABLE_KEY =
       "sb_publishable_yyz0YzcwSw1BYWjnfGsS4A_hj8-Cq-m";
 
-    // Keep this for future GoCardless restoration.
     const PAYMENT_LINK =
-      "https://pay.gocardless.com/BRT01M82MJQSQH4X8MK0CBC5JP0K5";
+      "https://pay.gocardless.com/BRT01M8CA196WWX4YZ8C3V0CS7Y89";
 
     const MEMBER_URL =
       "https://foldituk0-dot.github.io/foldit-coffee-scanner/member.html";
@@ -398,7 +373,6 @@
       }
     }
 
-    // Switch to create account
     document.getElementById("show-signup")
       .addEventListener("click", () => {
         loginPanel.hidden = true;
@@ -406,7 +380,6 @@
         showMessage("");
       });
 
-    // Switch back to sign in
     document.getElementById("show-login")
       .addEventListener("click", () => {
         signupPanel.hidden = true;
@@ -501,9 +474,9 @@
         await refreshSession();
       });
 
-    // BANK TRANSFER PAYMENT
+    // GOCARDLESS PAYMENT
     document.getElementById("pay-button")
-      .addEventListener("click", async () => {
+      .addEventListener("click", () => {
 
         if (!session) {
           showMessage("Please sign in first.");
@@ -519,43 +492,11 @@
           return;
         }
 
-        const button =
-          document.getElementById("pay-button");
-
-        const bankDetails =
-          document.getElementById("bank-transfer-details");
-
-        button.disabled = true;
-
-        showMessage("Preparing your bank transfer details...");
-
-        const { data, error } = await supabase.rpc(
-          "create_pending_membership",
-          {
-            p_full_name: fullName
-          }
-        );
-
-        button.disabled = false;
-
-        if (error || !data) {
-          showMessage(
-            "Could not prepare payment: " +
-            (error?.message || "Please try again.")
-          );
-          return;
-        }
-
-        document.getElementById(
-          "bank-payment-reference"
-        ).textContent = data;
-
-        bankDetails.hidden = false;
-        button.hidden = true;
-
         showMessage(
-          "Your payment reference is ready. Please transfer £19.99 using the bank details below."
+          "Taking you to GoCardless. Please use the same email as your Fold It account."
         );
+
+        window.location.href = PAYMENT_LINK;
       });
 
     document.getElementById("refresh-button")
