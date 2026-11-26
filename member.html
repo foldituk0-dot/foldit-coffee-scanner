@@ -54,8 +54,49 @@
     </form>
     <button id="show-login" type="button">Back to sign in</button>
   </section>
+<section id="payment-panel" hidden>
+  <h2>Complete your membership</h2>
+  <p>Your annual membership costs <strong>£19.99</strong>.</p>
+  <p>One-off payment for 12 months of membership.</p>
 
-  <section id="payment-panel" hidden>
+  <input
+    id="payment-full-name"
+    type="text"
+    placeholder="Full name"
+    required
+  >
+
+  <p class="small">
+    Please use your Fold It account email address.
+  </p>
+
+  <button id="pay-button" type="button">
+    Pay £19.99 by Bank Transfer
+  </button>
+
+  <div id="bank-transfer-details" hidden>
+    <h3>Bank transfer details</h3>
+
+    <p><strong>Account name:</strong><br>DEEPA INTERNATIONAL LTD</p>
+    <p><strong>Sort code:</strong><br>04-14-50</p>
+    <p><strong>Account number:</strong><br>64123136</p>
+
+    <p><strong>Payment reference:</strong></p>
+    <p id="bank-payment-reference"></p>
+
+    <p><strong>Amount to pay: £19.99</strong></p>
+
+    <p class="small">
+      Your membership will remain pending until we receive and
+      manually confirm your bank transfer. Please allow us time
+      to check your payment.
+    </p>
+  </div>
+
+  <button id="payment-signout-button" type="button">
+    Sign out / use another account
+  </button>
+</section>
     <h2>Complete your membership</h2>
     <p>Your annual membership costs <strong>£19.99</strong>.</p>
     <p>It is a one-off payment and gives you 12 months of membership.</p>
@@ -316,37 +357,45 @@
       await refreshSession();
     });
 
-    document.getElementById("pay-button").addEventListener("click", async () => {
-      if (!session) {
-        showMessage("Please sign in first.");
-        return;
-      }
+   document.getElementById("pay-button").addEventListener("click", async () => {
+  if (!session) {
+    showMessage("Please sign in first.");
+    return;
+  }
 
-      const fullName = document.getElementById("payment-full-name").value.trim();
+  const fullName = document.getElementById("payment-full-name").value.trim();
 
-      if (!fullName) {
-        showMessage("Please enter your full name.");
-        return;
-      }
+  if (!fullName) {
+    showMessage("Please enter your full name.");
+    return;
+  }
 
-      const button = document.getElementById("pay-button");
-      button.disabled = true;
-      showMessage("Preparing your membership payment...");
+  const button = document.getElementById("pay-button");
+  const bankDetails = document.getElementById("bank-transfer-details");
 
-      const { error } = await supabase.rpc("create_pending_membership", {
-        p_full_name: fullName
-      });
+  button.disabled = true;
+  showMessage("Preparing your bank transfer details...");
 
-      button.disabled = false;
+  const { data, error } = await supabase.rpc("create_pending_membership", {
+    p_full_name: fullName
+  });
 
-      if (error) {
-        showMessage("Could not prepare payment: " + error.message);
-        return;
-      }
+  button.disabled = false;
 
-      showMessage("Opening secure payment page. Please use the same email address as your Fold It account.");
-      window.location.href = PAYMENT_LINK;
-    });
+  if (error || !data) {
+    showMessage("Could not prepare payment: " + (error?.message || "Please try again."));
+    return;
+  }
+
+  document.getElementById("bank-payment-reference").textContent = data;
+
+  bankDetails.hidden = false;
+  button.hidden = true;
+
+  showMessage(
+    "Your payment reference is ready. Please transfer £19.99 using the bank details below."
+  );
+});
 
     document.getElementById("check-payment-button").addEventListener("click", async () => {
       showMessage("Checking your membership. This may take a moment after payment confirmation.");
